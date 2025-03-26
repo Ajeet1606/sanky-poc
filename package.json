@@ -19,12 +19,24 @@
     "src/**/*.{js,jsx,ts,tsx}": "npm run lint-prettier"
   },
   "dependencies": {
+    "@types/d3-fetch": "^3.0.7",
+    "@types/d3-format": "^3.0.4",
+    "@types/d3-sankey": "^0.12.4",
+    "@types/d3-scale": "^4.0.9",
+    "@types/d3-scale-chromatic": "^3.1.0",
+    "@types/d3-shape": "^3.1.7",
     "d3": "^7.9.0",
+    "d3-fetch": "^3.0.1",
+    "d3-format": "^3.1.0",
     "d3-sankey": "^0.12.3",
+    "d3-scale": "^4.0.2",
+    "d3-scale-chromatic": "^3.1.0",
+    "d3-shape": "^3.2.0",
     "next": "15.1.4",
     "next-intl": "^3.26.3",
     "react": "19.0.0",
-    "react-dom": "19.0.0"
+    "react-dom": "19.0.0",
+    "react-use": "^17.6.0"
   },
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.1.1",
