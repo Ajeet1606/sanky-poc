@@ -8,7 +8,7 @@ export interface SankeyDataLink {
 
 export interface SankeyDataNode {
   name: string;
-  category: string;
+  // category: string;
 }
 
 export interface SankeyData {

@@ -12,6 +12,7 @@ interface SankeyRectProps {
   height?: number;
   color?: string;
   title?: string;
+  node: RectNode;
 }
 
 const getCoordinates = (node: RectNode) => {
@@ -30,10 +31,23 @@ const getCoordinates = (node: RectNode) => {
 export const SankeyRect = ({
   color,
   title,
+  node,
   ...rectProps
 }: SankeyRectProps): JSX.Element => {
+  console.log(node);
+
   return (
-    <rect {...rectProps} fill={color}>
+    <rect
+      {...rectProps}
+      fill={color}
+      onClick={(e) => {
+        e.stopPropagation();
+        console.log('node', node);
+      }}
+      style={{
+        cursor: 'pointer',
+      }}
+    >
       {title && <title>{title}</title>}
     </rect>
   );
@@ -60,6 +74,7 @@ export const SankeyRects = ({
             key={node.name}
             color={colorFunc?.(node)}
             title={titleFunc?.(node)}
+            node={node}
           />
         );
       })}

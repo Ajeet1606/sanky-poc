@@ -8,13 +8,42 @@ interface SankeyLabelProps {
   dy: string;
   textAnchor?: 'start' | 'middle' | 'end';
   text: string;
+  node: RectNode;
 }
+
+const getPercentageFraction = (node: RectNode) => {
+  const currentValue = node.value ?? 0;
+  const parentValue =
+    node.targetLinks?.reduce(
+      (acc, cur) => acc + ((cur.source as any)?.value ?? 0),
+      0
+    ) ?? 0;
+
+  //calculate % of parent value
+  const percentage = (currentValue / parentValue) * 100;
+  return percentage.toFixed(2);
+};
 
 export const SankeyLabel = ({
   text,
+  node,
   ...textProps
 }: SankeyLabelProps): JSX.Element => {
-  return <text {...textProps}>{text}</text>;
+  return (
+    <g>
+      <text {...textProps} fontSize="12" fontWeight="600" fill="currentColor">
+        {/* Node name on first line */}
+        <tspan x={textProps.x} dy="0" fontWeight="bold">
+          {text}
+        </tspan>
+
+        {/* Value on second line */}
+        <tspan x={textProps.x} dy="1.2em" fontSize="10" opacity="0.7">
+          {`${getPercentageFraction(node)}% (${node.value?.toLocaleString()})`}
+        </tspan>
+      </text>
+    </g>
+  );
 };
 
 const isFullRectNode = (node: RectNode): node is Required<RectNode> => {
@@ -58,7 +87,14 @@ export const SankeyLabels = ({
         if (!isFullRectNode(node)) return null;
         const textProps = getTextProps(node, width);
 
-        return <SankeyLabel {...textProps} text={node.name} key={node.name} />;
+        return (
+          <SankeyLabel
+            {...textProps}
+            text={node.name}
+            key={node.name}
+            node={node}
+          />
+        );
       })}
     </g>
   );

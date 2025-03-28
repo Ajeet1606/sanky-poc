@@ -1,0 +1,157 @@
+{
+    "nodes": [
+        {
+            "id": "Traces",
+            "value": 10534,
+            "unit": "number",
+            "attributes": "Measure",
+            "metadata": [
+                {
+                    "label": "SLA",
+                    "value": 1.4,
+                    "unit": "Seconds",
+                    "attributes": "Info"
+                },
+                {
+                    "label": "Latency P95",
+                    "value": 1.916,
+                    "unit": "Seconds",
+                    "attributes": "Measure",
+                    "Indicator": {
+                        "id": "Letancy KIP",
+                        "value": "FAIL",
+                        "unit": "String",
+                        "sentiment": "Negative"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "Completed",
+            "value": 100,
+            "unit": "Percentage",
+            "attributes": "Measure",
+            "metadata": [
+                {
+                    "label": "Latency P95",
+                    "value": 1.916,
+                    "unit": "Seconds",
+                    "attributes": "Measure",
+                    "Indicator": {
+                        "id": "Letancy KIP",
+                        "value": "FAIL",
+                        "unit": "String",
+                        "sentiment": "Negative"
+                    }
+                },
+                {
+                    "label": "Avarage Latency",
+                    "value": 1.431,
+                    "unit": "Seconds",
+                    "attributes": "Measure",
+                    "Indicator": {
+                        "id": "Letancy KIP",
+                        "value": "FAIL",
+                        "unit": "String",
+                        "sentiment": "Negative"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "Error",
+            "value": 30,
+            "unit": "Percentage",
+            "attributes": "Measure",
+            "metadata": [
+                {
+                    "label": "Avarage Latency",
+                    "value": 0,
+                    "unit": "Seconds",
+                    "attributes": "Measure"
+                }
+            ]
+        },
+        {
+            "id": "Abandoned",
+            "value": 0,
+            "unit": "Percentage",
+            "attributes": "Measure",
+            "Indicator": {
+                "id": "Reliability KPI",
+                "value": "Unknown",
+                "unit": "String",
+                "sentiment": "Unknown"
+            },
+            "metadata": [
+                {
+                    "label": "Avarage Latency",
+                    "value": 0,
+                    "unit": "Seconds",
+                    "attributes": "Measure"
+                }
+            ]
+        },
+        {
+            "id": "Met SLA",
+            "value": 33,
+            "unit": "Percentage",
+            "attributes": "Measure",
+            "metadata": [
+                {
+                    "label": "SLA",
+                    "value": 0.0,
+                    "unit": "Seconds",
+                    "attributes": "Measure",
+                    "Indicator": {
+                        "id": "Letancy KIP",
+                        "value": "PASS",
+                        "unit": "String",
+                        "sentiment": "Positive"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "SLA Not Met",
+            "value": 67,
+            "unit": "Percentage",
+            "metadata": [
+                {
+                    "label": "SLA",
+                    "value": 0.0,
+                    "unit": "Seconds",
+                    "attributes": "Measure",
+                    "Indicator": {
+                        "id": "Latency KIP",
+                        "value": "PASS",
+                        "unit": "String",
+                        "sentiment": "Positive"
+                    }
+                }
+            ]
+        }
+    ],
+    "links": [
+        {
+            "source": "Traces",
+            "target": "Completed"
+        },
+        {
+            "source": "Traces",
+            "target": "Error"
+        },
+        {
+            "source": "Traces",
+            "target": "Abandoned"
+        },
+        {
+            "source": "Completed",
+            "target": "Met SLA"
+        },
+        {
+            "source": "Completed",
+            "target": "Didn't Met SLA"
+        }
+    ]
+}

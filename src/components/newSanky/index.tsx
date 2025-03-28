@@ -1,4 +1,5 @@
 import React, { JSX, useEffect, useMemo, useState } from 'react';
+import { chartdata, sankeyData } from '@/constants/data';
 import { useMeasure } from 'react-use';
 
 import { getData, SankeyData } from './data';
@@ -22,11 +23,11 @@ export const SankeyChart = ({
   width,
   height,
 }: SankeyChartProps): JSX.Element | null => {
-  const [data, setData] = useState<SankeyData | null>(null);
+  const [data, setData] = useState<SankeyData | null>(sankeyData);
 
-  useEffect(() => {
-    getData().then(setData);
-  }, []);
+  // useEffect(() => {
+  //   getData().then(setData);
+  // }, []);
 
   const sankeyGen = useMemo(
     () =>
@@ -46,21 +47,32 @@ export const SankeyChart = ({
   if (!data || !sankeyResult) return null;
 
   const { nodes, links } = sankeyResult;
-
   return (
-    <svg width={width} height={height}>
-      <SankeyRects
-        nodes={nodes}
-        colorFunc={colorRectFunc}
-        titleFunc={formatRectTitleFunc}
-      />
-      <SankeyLinks
-        links={links}
-        colorFunc={colorLinkFunc}
-        titleFunc={formatLinkTitleFunc}
-      />
-      <SankeyLabels nodes={nodes} width={width} />
-    </svg>
+    <>
+      <svg width={width} height={height}>
+        <SankeyRects
+          nodes={nodes}
+          colorFunc={colorRectFunc}
+          titleFunc={formatRectTitleFunc}
+        />
+        <SankeyLinks
+          links={links}
+          colorFunc={colorLinkFunc}
+          titleFunc={formatLinkTitleFunc}
+        />
+        <SankeyLabels nodes={nodes} width={width} />
+      </svg>
+      <div
+        id="tooltip"
+        className="pointer-events-none absolute rounded border bg-white p-2 text-sm shadow-lg"
+        style={{
+          opacity: 0,
+          transition: 'opacity 0.3s',
+          pointerEvents: 'none',
+          position: 'absolute',
+        }}
+      ></div>
+    </>
   );
 };
 
@@ -71,7 +83,7 @@ export const Sankey = (): JSX.Element => {
   return (
     // ResizeObserver doesn't work directly on <svg/>
     <div ref={ref}>
-      {width > 0 && <SankeyChart width={width} height={600} />}
+      {width > 0 && <SankeyChart width={width} height={200} />}
     </div>
   );
 };

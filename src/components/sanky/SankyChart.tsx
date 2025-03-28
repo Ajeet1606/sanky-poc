@@ -121,7 +121,7 @@ const SankeyDiagram: React.FC = () => {
       // Add hover effects
       .on('mouseover', function (event, d: any) {
         d3.select(this).attr('stroke-opacity', 0.8);
-        const tooltip = d3.select('#tooltip');
+        const tooltip = d3.select('#tooltip_sanky_chart');
         const tooltipWidth = 120; // Approx width of tooltip
         const xPos = event.pageX + 10;
         const yPos = event.pageY - 28;
@@ -138,7 +138,7 @@ const SankeyDiagram: React.FC = () => {
       .on('mouseout', function () {
         d3.select(this).attr('stroke-opacity', 0.5);
         // Hide tooltip
-        d3.select('#tooltip').style('opacity', 0);
+        d3.select('#tooltip_sanky_chart').style('opacity', 0);
       });
 
     // Draw nodes
@@ -250,7 +250,7 @@ const SankeyDiagram: React.FC = () => {
       <svg ref={svgRef} className="w-full cursor-pointer"></svg>
 
       <div
-        id="tooltip"
+        id="tooltip_sanky_chart"
         className="pointer-events-none absolute rounded border bg-white p-2 text-sm shadow-lg"
         style={{
           opacity: 0,
