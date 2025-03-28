@@ -1,6 +1,10 @@
 import React, { JSX } from 'react';
 import * as d3 from 'd3';
-import { sankeyLinkHorizontal, SankeyLink as SankeyLinkType } from 'd3-sankey';
+import {
+  sankeyLinkHorizontal,
+  SankeyLink as SankeyLinkType,
+  SankeyNodeMinimal,
+} from 'd3-sankey';
 
 import { SankeyDataLink, SankeyDataNode } from './data';
 import { RectNode } from './SankyRect';
@@ -34,6 +38,7 @@ export const SankeyLink = ({
         d={d}
         stroke={color}
         strokeWidth={strokeWidth}
+        id={`path-link-${(link.source as SankeyDataNode & SankeyNodeMinimal<SankeyDataNode, SankeyDataLink>).index}-${(link.target as SankeyDataNode & SankeyNodeMinimal<SankeyDataNode, SankeyDataLink>).index}`}
         style={{ cursor: 'pointer' }}
         onClick={(e) => {
           e.stopPropagation();
@@ -60,6 +65,7 @@ export const SankeyLink = ({
           d3.select('#tooltip').style('opacity', 0);
         }}
       >
+        {/* check if we need this */}
         {title && <title>{title}</title>}
       </path>
     </g>
@@ -82,6 +88,8 @@ export const SankeyLinks = ({
   return (
     <g fill="none" strokeOpacity={0.5}>
       {links.map((link) => {
+        console.log('link in links', link);
+
         const d = makeDPath(link);
 
         if (!d) return null;

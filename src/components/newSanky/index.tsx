@@ -54,6 +54,7 @@ export const SankeyChart = ({
           nodes={nodes}
           colorFunc={colorRectFunc}
           titleFunc={formatRectTitleFunc}
+          links={links}
         />
         <SankeyLinks
           links={links}

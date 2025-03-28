@@ -29,6 +29,8 @@ export const SankeyLabel = ({
   node,
   ...textProps
 }: SankeyLabelProps): JSX.Element => {
+  const percentageValue = getPercentageFraction(node);
+
   return (
     <g>
       <text {...textProps} fontSize="12" fontWeight="600" fill="currentColor">
@@ -39,7 +41,9 @@ export const SankeyLabel = ({
 
         {/* Value on second line */}
         <tspan x={textProps.x} dy="1.2em" fontSize="10" opacity="0.7">
-          {`${getPercentageFraction(node)}% (${node.value?.toLocaleString()})`}
+          {isNaN(+percentageValue) || percentageValue === 'Infinity'
+            ? `${node.value?.toLocaleString()}`
+            : `${percentageValue}% (${node.value?.toLocaleString()})`}
         </tspan>
       </text>
     </g>
