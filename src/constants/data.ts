@@ -2,10 +2,13 @@ export interface SankeyDataLink {
   source: string;
   target: string;
   value: number;
+  isVisible: boolean;
 }
 
 export interface SankeyDataNode {
   name: string;
+  parent: string | null; // Add parent to the node
+  isVisible: boolean;
 }
 
 export interface SankeyData {
@@ -13,32 +16,114 @@ export interface SankeyData {
   links: SankeyDataLink[];
 }
 
+export function markVisibleNodesAndLinks(rootName: string): SankeyData {
+  const { nodes, links } = sankeyData;
+
+  // Mark root node as visible
+  const rootNode = nodes.find(
+    (node) => node.name.toLowerCase() === rootName.toLowerCase()
+  );
+  if (rootNode) {
+    // if (rootNode.isVisible) return collapseNode(rootName);
+    rootNode.isVisible = true;
+  }
+
+  // Mark children of root as visible
+  const childNodes = nodes.filter(
+    (node) => node.parent?.toLowerCase() === rootName.toLowerCase()
+  );
+  childNodes.forEach((node) => {
+    node.isVisible = true;
+  });
+
+  // Mark links connecting visible nodes as visible
+  links.forEach((link) => {
+    const sourceNode = nodes.find((node) => node.name === link.source);
+    const targetNode = nodes.find((node) => node.name === link.target);
+    if (
+      sourceNode?.isVisible &&
+      targetNode?.isVisible &&
+      sourceNode.name.toLowerCase() === rootName.toLowerCase()
+    ) {
+      link.isVisible = true;
+    }
+  });
+
+  // Filter and return only the visible nodes and links
+  const visibleNodes = nodes.filter((node) => node.isVisible);
+  const visibleLinks = links.filter((link) => link.isVisible);
+
+  return {
+    nodes: visibleNodes,
+    links: visibleLinks,
+  };
+}
+
+export function collapseNode(nodeName: string): SankeyData {
+  const { nodes, links } = sankeyData;
+
+  // Mark children of root as visible false
+  const childNodes = nodes.filter(
+    (node) => node.parent?.toLowerCase() === nodeName.toLowerCase()
+  );
+  childNodes.forEach((node) => {
+    node.isVisible = false;
+  });
+
+  // Mark links originating from this node as false.
+  links.forEach((link) => {
+    const sourceNode = nodes.find((node) => node.name === link.source);
+    if (
+      sourceNode?.name.toLowerCase() === nodeName.toLowerCase() &&
+      sourceNode?.isVisible
+    ) {
+      link.isVisible = false;
+    }
+  });
+
+  // Filter and return only the visible nodes and links
+  const visibleNodes = nodes.filter((node) => node.isVisible);
+  const visibleLinks = links.filter((link) => link.isVisible);
+
+  return {
+    nodes: visibleNodes,
+    links: visibleLinks,
+  };
+}
+
 function extractSankeyData(data: any): SankeyData {
-  const nodesSet = new Set<string>();
+  const nodesMap = new Map<string, SankeyDataNode>(); // Map for unique nodes
   const links: SankeyDataLink[] = [];
 
   function traverse(obj: any, parentKey: string | null = null) {
     for (const key in obj) {
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        // Split the key to get the individual node names
+        // Split the key to handle hierarchy
         const keyParts = key.split('.');
-        const currentNode = keyParts[keyParts.length - 1];
+        const currentNode = keyParts[keyParts.length - 1]; // Get the leaf node
         const parentNode =
-          keyParts.length > 1 ? keyParts[keyParts.length - 2] : parentKey;
+          keyParts.length > 1 ? keyParts[keyParts.length - 2] : parentKey; // Get immediate parent
 
-        // Add current node to the set
-        nodesSet.add(currentNode);
+        // Add current node to the map with parent
+        if (!nodesMap.has(currentNode)) {
+          nodesMap.set(currentNode, {
+            name: currentNode,
+            parent: parentNode ?? null,
+            isVisible: false,
+          });
+        }
 
-        // Create a link if there's a parent
+        // Create a link if there's a valid parent and it's not a duplicate
         if (parentNode && parentNode !== currentNode) {
           links.push({
             source: parentNode,
             target: currentNode,
             value: obj[key],
+            isVisible: false,
           });
         }
 
-        // Continue if value is an object, otherwise it's a leaf
+        // Continue recursion if value is an object, otherwise stop
         if (typeof obj[key] === 'object' && obj[key] !== null) {
           traverse(obj[key], currentNode);
         }
@@ -48,8 +133,8 @@ function extractSankeyData(data: any): SankeyData {
 
   traverse(data);
 
-  // Convert nodesSet to an array of objects
-  const nodes = Array.from(nodesSet).map((name) => ({ name }));
+  // Convert nodesMap to an array of objects
+  const nodes = Array.from(nodesMap.values());
 
   return { nodes, links };
 }
@@ -62,7 +147,15 @@ const data = {
     'Traces.Error': 1030,
     'Traces.Abandoned': 1004,
     'Traces.Completed.Met SLA': 8000,
-    'Traces.Completed.Not Met SLA': 2500,
+    'Traces.Completed.Not Met SLA': 500,
+    'Traces.Error.Timeout': 530,
+    'Traces.Error.Internal Error': 500,
+    'Traces.Abandoned.User Cancellation': 600,
+    'Traces.Abandoned.Connection Lost': 404,
+    'Traces.Completed.Met SLA.High Priority': 5000,
+    'Traces.Completed.Met SLA.Low Priority': 3000,
+    'Traces.Completed.Not Met SLA.High Priority': 300,
+    'Traces.Completed.Not Met SLA.Low Priority': 200,
   },
 };
 

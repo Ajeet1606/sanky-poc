@@ -1,8 +1,12 @@
 import React, { JSX, useEffect, useMemo, useState } from 'react';
-import { chartdata, sankeyData } from '@/constants/data';
-import { useMeasure } from 'react-use';
+import {
+  chartdata,
+  markVisibleNodesAndLinks,
+  SankeyData,
+  sankeyData,
+} from '@/constants/data';
+import { useMeasure, useSetState } from 'react-use';
 
-import { getData, SankeyData } from './data';
 import {
   colorLinkFunc,
   colorRectFunc,
@@ -24,10 +28,14 @@ export const SankeyChart = ({
   height,
 }: SankeyChartProps): JSX.Element | null => {
   const [data, setData] = useState<SankeyData | null>(sankeyData);
+  const [visibleData, setVisibleData] = useState<SankeyData>();
+  console.log('data', data, visibleData);
 
-  // useEffect(() => {
-  //   getData().then(setData);
-  // }, []);
+  useEffect(() => {
+    if (!data) return;
+    const visibleData = markVisibleNodesAndLinks('traces');
+    setVisibleData(visibleData);
+  }, [data]);
 
   const sankeyGen = useMemo(
     () =>
@@ -39,14 +47,16 @@ export const SankeyChart = ({
   );
 
   const sankeyResult = useMemo(() => {
-    if (!data) return null;
+    if (!visibleData) return null;
 
-    return sankeyGen(data);
-  }, [data, sankeyGen]);
+    return sankeyGen(visibleData);
+  }, [visibleData, sankeyGen]);
 
-  if (!data || !sankeyResult) return null;
+  if (!visibleData || !sankeyResult) return null;
 
   const { nodes, links } = sankeyResult;
+  // Calculate dynamic height based on number of nodes
+  // const dynamicHeight = Math.max(nodes.length * 10, height); // 40px per node
   return (
     <>
       <svg width={width} height={height}>
@@ -55,6 +65,7 @@ export const SankeyChart = ({
           colorFunc={colorRectFunc}
           titleFunc={formatRectTitleFunc}
           links={links}
+          setVisibleData={setVisibleData}
         />
         <SankeyLinks
           links={links}
@@ -80,11 +91,13 @@ export const SankeyChart = ({
 export const Sankey = (): JSX.Element => {
   const [ref, measurements] = useMeasure<HTMLDivElement>();
   const { width } = measurements;
+  // Set default height to 300px if width is not available
+  const height = width > 0 ? width * 0.6 : 300; // Maintain aspect ratio
 
   return (
     // ResizeObserver doesn't work directly on <svg/>
     <div ref={ref}>
-      {width > 0 && <SankeyChart width={width} height={200} />}
+      {width > 0 && <SankeyChart width={width} height={height} />}
     </div>
   );
 };

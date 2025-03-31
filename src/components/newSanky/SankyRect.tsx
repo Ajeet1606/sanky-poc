@@ -1,4 +1,5 @@
 import React, { JSX } from 'react';
+import { markVisibleNodesAndLinks, SankeyData } from '@/constants/data';
 import * as d3 from 'd3';
 import { SankeyNode, SankeyNodeMinimal } from 'd3-sankey';
 
@@ -16,6 +17,7 @@ interface SankeyRectProps {
   title?: string;
   node: RectNode;
   links: PathLink[];
+  setVisibleData: React.Dispatch<React.SetStateAction<SankeyData | undefined>>;
 }
 
 const getCoordinates = (node: RectNode) => {
@@ -76,6 +78,7 @@ export const SankeyRect = ({
   title,
   node,
   links,
+  setVisibleData,
   ...rectProps
 }: SankeyRectProps): JSX.Element => {
   return (
@@ -85,6 +88,8 @@ export const SankeyRect = ({
       onClick={(e) => {
         e.stopPropagation();
         console.log('node', node, links);
+        const updatedVisibleData = markVisibleNodesAndLinks(node.name);
+        setVisibleData(updatedVisibleData);
       }}
       onMouseOver={(e) => {
         e.currentTarget.style.opacity = '1';
@@ -109,6 +114,7 @@ interface SankeyRectsProps {
   links: SankeyDataLink[];
   titleFunc?(node: RectNode): string;
   colorFunc?(node: RectNode): string;
+  setVisibleData: React.Dispatch<React.SetStateAction<SankeyData | undefined>>;
 }
 
 export const SankeyRects = ({
@@ -116,6 +122,7 @@ export const SankeyRects = ({
   links,
   titleFunc,
   colorFunc,
+  setVisibleData,
 }: SankeyRectsProps): JSX.Element => {
   return (
     <g stroke="#000">
@@ -129,6 +136,7 @@ export const SankeyRects = ({
             title={titleFunc?.(node)}
             node={node}
             links={links}
+            setVisibleData={setVisibleData}
           />
         );
       })}

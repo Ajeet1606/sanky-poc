@@ -64,10 +64,7 @@ export const SankeyLink = ({
           e.currentTarget.style.strokeOpacity = '0.5';
           d3.select('#tooltip').style('opacity', 0);
         }}
-      >
-        {/* check if we need this */}
-        {title && <title>{title}</title>}
-      </path>
+      ></path>
     </g>
   );
 };
@@ -88,8 +85,6 @@ export const SankeyLinks = ({
   return (
     <g fill="none" strokeOpacity={0.5}>
       {links.map((link) => {
-        console.log('link in links', link);
-
         const d = makeDPath(link);
 
         if (!d) return null;

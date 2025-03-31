@@ -5,10 +5,10 @@ import SankeyDiagram from '@/components/sanky/SankyChart';
 
 export default function Home() {
   return (
-    <div className="mb-10 flex flex-col items-center gap-28">
-      <SankeyDiagram />
+    <div className="mb-10 ml-10 flex flex-col items-center gap-28">
+      {/* <SankeyDiagram /> */}
 
-      <div className="w-3/4 p-4">
+      <div className="mt-20 w-full p-4">
         <Sankey />
       </div>
     </div>
