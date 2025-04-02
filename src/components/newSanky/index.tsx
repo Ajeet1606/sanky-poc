@@ -1,6 +1,5 @@
 import React, { JSX, useEffect, useMemo, useState } from 'react';
 import {
-  chartdata,
   markVisibleNodesAndLinks,
   SankeyData,
   sankeyData,
@@ -65,6 +64,7 @@ export const SankeyChart = ({
           colorFunc={colorRectFunc}
           titleFunc={formatRectTitleFunc}
           links={links}
+          visibleData={visibleData}
           setVisibleData={setVisibleData}
         />
         <SankeyLinks

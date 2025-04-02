@@ -1,9 +1,14 @@
 import React, { JSX } from 'react';
-import { markVisibleNodesAndLinks, SankeyData } from '@/constants/data';
+import {
+  collapseNode,
+  markVisibleNodesAndLinks,
+  SankeyData,
+  SankeyDataLink,
+  SankeyDataNode,
+} from '@/constants/data';
 import * as d3 from 'd3';
 import { SankeyNode, SankeyNodeMinimal } from 'd3-sankey';
 
-import { SankeyDataLink, SankeyDataNode } from './data';
 import { PathLink } from './SankyLink';
 
 export type RectNode = SankeyNode<SankeyDataNode, SankeyDataLink>;
@@ -17,6 +22,7 @@ interface SankeyRectProps {
   title?: string;
   node: RectNode;
   links: PathLink[];
+  visibleData: SankeyData;
   setVisibleData: React.Dispatch<React.SetStateAction<SankeyData | undefined>>;
 }
 
@@ -78,17 +84,25 @@ export const SankeyRect = ({
   title,
   node,
   links,
+  visibleData,
   setVisibleData,
   ...rectProps
 }: SankeyRectProps): JSX.Element => {
   return (
     <rect
+      rx="4"
       {...rectProps}
       fill={color}
       onClick={(e) => {
         e.stopPropagation();
-        console.log('node', node, links);
-        const updatedVisibleData = markVisibleNodesAndLinks(node.name);
+        if (node.name === 'Traces') return;
+        const isNotALeafNode = visibleData.links.some(
+          (link) => link.source.name === node.name
+        );
+
+        const updatedVisibleData = isNotALeafNode
+          ? collapseNode(node.name)
+          : markVisibleNodesAndLinks(node.name);
         setVisibleData(updatedVisibleData);
       }}
       onMouseOver={(e) => {
@@ -114,6 +128,7 @@ interface SankeyRectsProps {
   links: SankeyDataLink[];
   titleFunc?(node: RectNode): string;
   colorFunc?(node: RectNode): string;
+  visibleData: SankeyData;
   setVisibleData: React.Dispatch<React.SetStateAction<SankeyData | undefined>>;
 }
 
@@ -122,6 +137,7 @@ export const SankeyRects = ({
   links,
   titleFunc,
   colorFunc,
+  visibleData,
   setVisibleData,
 }: SankeyRectsProps): JSX.Element => {
   return (
@@ -136,6 +152,7 @@ export const SankeyRects = ({
             title={titleFunc?.(node)}
             node={node}
             links={links}
+            visibleData={visibleData}
             setVisibleData={setVisibleData}
           />
         );

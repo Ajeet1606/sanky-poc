@@ -1,6 +1,6 @@
 export interface SankeyDataLink {
-  source: string;
-  target: string;
+  source: SankeyDataNode;
+  target: SankeyDataNode;
   value: number;
   isVisible: boolean;
 }
@@ -16,15 +16,19 @@ export interface SankeyData {
   links: SankeyDataLink[];
 }
 
+// this function is called in two sceanrios:
+// - initial render: to mark first 2 levels as visible (root and its children): for expantion
+// - when a node is clicked.: to mark its children and links as visible: for expantion
 export function markVisibleNodesAndLinks(rootName: string): SankeyData {
+  console.log('expand...', rootName);
+
   const { nodes, links } = sankeyData;
 
-  // Mark root node as visible
+  // Mark root node as visible: for initial render only.
   const rootNode = nodes.find(
     (node) => node.name.toLowerCase() === rootName.toLowerCase()
   );
   if (rootNode) {
-    // if (rootNode.isVisible) return collapseNode(rootName);
     rootNode.isVisible = true;
   }
 
@@ -38,8 +42,8 @@ export function markVisibleNodesAndLinks(rootName: string): SankeyData {
 
   // Mark links connecting visible nodes as visible
   links.forEach((link) => {
-    const sourceNode = nodes.find((node) => node.name === link.source);
-    const targetNode = nodes.find((node) => node.name === link.target);
+    const sourceNode = nodes.find((node) => node.name === link.source.name);
+    const targetNode = nodes.find((node) => node.name === link.target.name);
     if (
       sourceNode?.isVisible &&
       targetNode?.isVisible &&
@@ -60,22 +64,23 @@ export function markVisibleNodesAndLinks(rootName: string): SankeyData {
 }
 
 export function collapseNode(nodeName: string): SankeyData {
+  console.log('collapse...', nodeName);
+
   const { nodes, links } = sankeyData;
 
   // Mark children of root as visible false
-  const childNodes = nodes.filter(
-    (node) => node.parent?.toLowerCase() === nodeName.toLowerCase()
-  );
+  const childNodes = getAllChildNodesInHierarchy(nodeName, nodes);
+
   childNodes.forEach((node) => {
     node.isVisible = false;
   });
 
   // Mark links originating from this node as false.
   links.forEach((link) => {
-    const sourceNode = nodes.find((node) => node.name === link.source);
+    const sourceNode = nodes.find((node) => node.name === link.source.name);
     if (
-      sourceNode?.name.toLowerCase() === nodeName.toLowerCase() &&
-      sourceNode?.isVisible
+      childNodes.some((node) => node.name === sourceNode?.name) ||
+      sourceNode?.name === nodeName
     ) {
       link.isVisible = false;
     }
@@ -91,6 +96,22 @@ export function collapseNode(nodeName: string): SankeyData {
   };
 }
 
+function getAllChildNodesInHierarchy(
+  nodeName: string,
+  nodes: SankeyDataNode[]
+): SankeyDataNode[] {
+  const childNodes: SankeyDataNode[] = [];
+  const childNodesOfNode = nodes.filter(
+    (node) =>
+      node.parent?.toLowerCase() === nodeName.toLowerCase() && node.isVisible
+  );
+  childNodesOfNode.forEach((node) => {
+    childNodes.push(node);
+    childNodes.push(...getAllChildNodesInHierarchy(node.name, nodes));
+  });
+  return childNodes;
+}
+
 function extractSankeyData(data: any): SankeyData {
   const nodesMap = new Map<string, SankeyDataNode>(); // Map for unique nodes
   const links: SankeyDataLink[] = [];
@@ -100,24 +121,24 @@ function extractSankeyData(data: any): SankeyData {
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
         // Split the key to handle hierarchy
         const keyParts = key.split('.');
-        const currentNode = keyParts[keyParts.length - 1]; // Get the leaf node
+        const currentNodeName = keyParts[keyParts.length - 1]; // Get the leaf node
         const parentNode =
           keyParts.length > 1 ? keyParts[keyParts.length - 2] : parentKey; // Get immediate parent
 
         // Add current node to the map with parent
-        if (!nodesMap.has(currentNode)) {
-          nodesMap.set(currentNode, {
-            name: currentNode,
+        if (!nodesMap.has(currentNodeName)) {
+          nodesMap.set(currentNodeName, {
+            name: currentNodeName,
             parent: parentNode ?? null,
             isVisible: false,
           });
         }
 
         // Create a link if there's a valid parent and it's not a duplicate
-        if (parentNode && parentNode !== currentNode) {
+        if (parentNode && parentNode !== currentNodeName) {
           links.push({
-            source: parentNode,
-            target: currentNode,
+            source: nodesMap.get(parentNode)!, // Safe to assume node exists
+            target: nodesMap.get(currentNodeName)!, // Safe to assume node exists
             value: obj[key],
             isVisible: false,
           });
@@ -125,7 +146,7 @@ function extractSankeyData(data: any): SankeyData {
 
         // Continue recursion if value is an object, otherwise stop
         if (typeof obj[key] === 'object' && obj[key] !== null) {
-          traverse(obj[key], currentNode);
+          traverse(obj[key], currentNodeName);
         }
       }
     }
@@ -154,200 +175,9 @@ const data = {
     'Traces.Abandoned.Connection Lost': 404,
     'Traces.Completed.Met SLA.High Priority': 5000,
     'Traces.Completed.Met SLA.Low Priority': 3000,
-    'Traces.Completed.Not Met SLA.High Priority': 300,
-    'Traces.Completed.Not Met SLA.Low Priority': 200,
+    'Traces.Completed.Not Met SLA.Doable': 300,
+    'Traces.Completed.Not Met SLA.Not Doable': 200,
   },
 };
 
 export const sankeyData = extractSankeyData(data.nodes);
-
-export const chartdata = {
-  links: [
-    {
-      source: "Agricultural 'waste'",
-      target: 'Bio-conversion',
-      value: 124.729,
-    },
-    {
-      source: 'Bio-conversion',
-      target: 'Liquid',
-      value: 0.597,
-    },
-    {
-      source: 'Bio-conversion',
-      target: 'Losses',
-      value: 26.862,
-    },
-    {
-      source: 'Bio-conversion',
-      target: 'Solid',
-      value: 280.322,
-    },
-    {
-      source: 'Bio-conversion',
-      target: 'Gas',
-      value: 81.144,
-    },
-    {
-      source: 'Biofuel imports',
-      target: 'Liquid',
-      value: 35,
-    },
-    {
-      source: 'Biomass imports',
-      target: 'Solid',
-      value: 35,
-    },
-    {
-      source: 'Coal imports',
-      target: 'Coal',
-      value: 11.606,
-    },
-    {
-      source: 'Coal',
-      target: 'Solid',
-      value: 75.571,
-    },
-    {
-      source: 'Coal reserves',
-      target: 'Coal',
-      value: 63.965,
-    },
-    {
-      source: 'District heating',
-      target: 'Industry',
-      value: 10.639,
-    },
-    {
-      source: 'District heating',
-      target: 'Heating and cooling - commercial',
-      value: 22.505,
-    },
-    {
-      source: 'Electricity grid',
-      target: 'Over generation / exports',
-      value: 104.453,
-    },
-    {
-      source: 'Electricity grid',
-      target: 'H2 conversion',
-      value: 27.14,
-    },
-    {
-      source: 'Gas imports',
-      target: 'Ngas',
-      value: 40.719,
-    },
-    {
-      source: 'Gas',
-      target: 'Losses',
-      value: 1.401,
-    },
-    {
-      source: 'H2 conversion',
-      target: 'H2',
-      value: 20.897,
-    },
-    {
-      source: 'Hydro',
-      target: 'Electricity grid',
-      value: 6.995,
-    },
-    {
-      source: 'Liquid',
-      target: 'Domestic aviation',
-      value: 14.458,
-    },
-  ],
-  nodes: [
-    {
-      name: "Agricultural 'waste'",
-      category: 'Agricultural',
-    },
-    {
-      name: 'Bio-conversion',
-      category: 'Bio-conversion',
-    },
-    {
-      name: 'Liquid',
-      category: 'Liquid',
-    },
-    {
-      name: 'Losses',
-      category: 'Losses',
-    },
-    {
-      name: 'Solid',
-      category: 'Solid',
-    },
-    {
-      name: 'Gas',
-      category: 'Gas',
-    },
-    {
-      name: 'Biofuel imports',
-      category: 'Biofuel',
-    },
-    {
-      name: 'Biomass imports',
-      category: 'Biomass',
-    },
-    {
-      name: 'Coal imports',
-      category: 'Coal',
-    },
-    {
-      name: 'Coal',
-      category: 'Coal',
-    },
-
-    {
-      name: 'Coal reserves',
-      category: 'Coal',
-    },
-    {
-      name: 'District heating',
-      category: 'District',
-    },
-    {
-      name: 'Industry',
-      category: 'Industry',
-    },
-    {
-      name: 'H2 conversion',
-      category: 'H2',
-    },
-    {
-      name: 'Gas imports',
-      category: 'Gas',
-    },
-    {
-      name: 'H2',
-      category: 'H2',
-    },
-    {
-      name: 'Hydro',
-      category: 'Hydro',
-    },
-    {
-      name: 'Heating and cooling - commercial',
-      category: 'Heating',
-    },
-    {
-      name: 'Electricity grid',
-      category: 'Electricity',
-    },
-    {
-      name: 'Over generation / exports',
-      category: 'Over',
-    },
-    {
-      name: 'Domestic aviation',
-      category: 'Domestic',
-    },
-    {
-      name: 'Ngas',
-      category: 'Ngas',
-    },
-  ],
-};

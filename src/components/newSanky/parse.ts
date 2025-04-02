@@ -1,9 +1,9 @@
+import { SankeyData, SankeyDataLink, SankeyDataNode } from '@/constants/data';
 import { format } from 'd3-format';
 import { sankey, sankeyCenter, SankeyLayout } from 'd3-sankey';
 import { scaleOrdinal } from 'd3-scale';
 import { schemeCategory10 } from 'd3-scale-chromatic';
 
-import { SankeyData, SankeyDataLink, SankeyDataNode } from './data';
 import { PathLink } from './SankyLink';
 import { RectNode } from './SankyRect';
 
@@ -17,7 +17,7 @@ export const colorLinkFunc = (dataPoint: PathLink) => {
       ? (dataPoint.target as RectNode).name
       : dataPoint.target;
 
-  return d3Color(name);
+  return d3Color(name as string);
 };
 
 const d3format = format(',.0f');
