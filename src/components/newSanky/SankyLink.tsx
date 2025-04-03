@@ -1,4 +1,4 @@
-import React, { JSX, useEffect, useState } from 'react';
+import React, { JSX, useEffect, useRef, useState } from 'react';
 import { SankeyDataLink, SankeyDataNode } from '@/constants/data';
 import * as d3 from 'd3';
 import {
@@ -14,6 +14,7 @@ export type PathLink = SankeyLinkType<SankeyDataNode, SankeyDataLink>;
 
 const makeDPath = sankeyLinkHorizontal<SankeyDataNode, SankeyDataLink>();
 
+const renderedLinksCache = new Set<string>();
 interface SankeyLinkProps {
   d: string;
   strokeWidth?: number;
@@ -22,6 +23,8 @@ interface SankeyLinkProps {
   source?: string;
   target?: string;
   link: PathLink;
+  renderedLinksCache: Set<string>;
+  setRenderedLinksCache: React.Dispatch<React.SetStateAction<Set<string>>>;
 }
 
 export const SankeyLink = ({
@@ -32,11 +35,46 @@ export const SankeyLink = ({
   source,
   target,
   link,
+  renderedLinksCache,
+  setRenderedLinksCache,
 }: SankeyLinkProps): JSX.Element => {
+  const pathRef = useRef<SVGPathElement>(null);
+  // const [pathLength, setPathLength] = useState(0);
+  const [animationActive, setAnimationActive] = useState(true);
+
+  const linkKey = `${source}--${target}`;
+
   const uuid = `${(link.source as SankeyDataNode & SankeyNodeMinimal<SankeyDataNode, SankeyDataLink>).index}-${(link.target as SankeyDataNode & SankeyNodeMinimal<SankeyDataNode, SankeyDataLink>).index}`;
 
   const sourceNodeColor = colorRectFunc(link.source);
   const targetNodeColor = colorRectFunc(link.target);
+
+  useEffect(() => {
+    if (pathRef.current && !renderedLinksCache.has(linkKey)) {
+      setRenderedLinksCache((prevSet) => {
+        const newSet = new Set(prevSet);
+        newSet.add(linkKey);
+        return newSet;
+      });
+      const length = pathRef.current.getTotalLength();
+      // setPathLength(length);
+
+      // Reset animation when component mounts
+      if (pathRef.current) {
+        pathRef.current.style.strokeDasharray = `${length} ${length}`;
+        pathRef.current.style.strokeDashoffset = `${length}`;
+
+        // Trigger animation
+        setTimeout(() => {
+          if (pathRef.current) {
+            pathRef.current.style.transition =
+              'stroke-dashoffset 0.5s ease-in-out';
+            pathRef.current.style.strokeDashoffset = '0';
+          }
+        }, 50);
+      }
+    }
+  }, [d, linkKey]);
 
   return (
     <g style={{ mixBlendMode: 'multiply' }}>
@@ -77,6 +115,7 @@ export const SankeyLink = ({
         </linearGradient>
       </defs>
       <path
+        ref={pathRef}
         d={d}
         stroke={`url(#linkGradient-${uuid})`}
         // stroke={color}
@@ -114,12 +153,16 @@ interface SankeyLinksProps {
   links: PathLink[];
   titleFunc?(link: PathLink): string;
   colorFunc?(link: PathLink): string;
+  renderedLinksCache: Set<string>;
+  setRenderedLinksCache: React.Dispatch<React.SetStateAction<Set<string>>>;
 }
 
 export const SankeyLinks = ({
   links,
   titleFunc,
   colorFunc,
+  renderedLinksCache,
+  setRenderedLinksCache,
 }: SankeyLinksProps): JSX.Element => {
   return (
     <g fill="none" strokeOpacity={0.5}>
@@ -150,6 +193,8 @@ export const SankeyLinks = ({
             source={sourceName}
             target={targetName}
             link={link}
+            renderedLinksCache={renderedLinksCache}
+            setRenderedLinksCache={setRenderedLinksCache}
           />
         );
       })}

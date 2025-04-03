@@ -1,3 +1,5 @@
+import React from 'react';
+
 export interface SankeyDataLink {
   source: SankeyDataNode;
   target: SankeyDataNode;
@@ -63,7 +65,10 @@ export function markVisibleNodesAndLinks(rootName: string): SankeyData {
   };
 }
 
-export function collapseNode(nodeName: string): SankeyData {
+export function collapseNode(
+  nodeName: string,
+  setRenderedLinksCache: React.Dispatch<React.SetStateAction<Set<string>>>
+): SankeyData {
   console.log('collapse...', nodeName);
 
   const { nodes, links } = sankeyData;
@@ -78,11 +83,18 @@ export function collapseNode(nodeName: string): SankeyData {
   // Mark links originating from this node as false.
   links.forEach((link) => {
     const sourceNode = nodes.find((node) => node.name === link.source.name);
+    const targetNode = nodes.find((node) => node.name === link.target.name);
     if (
       childNodes.some((node) => node.name === sourceNode?.name) ||
       sourceNode?.name === nodeName
     ) {
       link.isVisible = false;
+      const linkKey = `${sourceNode?.name}--${targetNode?.name}`;
+      setRenderedLinksCache((prevSet) => {
+        const newSet = new Set(prevSet);
+        newSet.delete(linkKey);
+        return newSet;
+      });
     }
   });
 

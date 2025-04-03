@@ -28,7 +28,10 @@ export const SankeyChart = ({
 }: SankeyChartProps): JSX.Element | null => {
   const [data, setData] = useState<SankeyData | null>(sankeyData);
   const [visibleData, setVisibleData] = useState<SankeyData>();
-  console.log('data', data, visibleData);
+  // Keep track of links that have already been rendered
+  const [renderedLinksCache, setRenderedLinksCache] = useState(
+    new Set<string>()
+  );
 
   useEffect(() => {
     if (!data) return;
@@ -54,11 +57,9 @@ export const SankeyChart = ({
   if (!visibleData || !sankeyResult) return null;
 
   const { nodes, links } = sankeyResult;
-  // Calculate dynamic height based on number of nodes
-  // const dynamicHeight = Math.max(nodes.length * 10, height); // 40px per node
   return (
     <>
-      <svg width={width} height={height}>
+      <svg width={width} height={height} style={{ margin: '0 20' }}>
         <SankeyRects
           nodes={nodes}
           colorFunc={colorRectFunc}
@@ -66,11 +67,14 @@ export const SankeyChart = ({
           links={links}
           visibleData={visibleData}
           setVisibleData={setVisibleData}
+          setRenderedLinksCache={setRenderedLinksCache}
         />
         <SankeyLinks
           links={links}
           colorFunc={colorLinkFunc}
           titleFunc={formatLinkTitleFunc}
+          renderedLinksCache={renderedLinksCache}
+          setRenderedLinksCache={setRenderedLinksCache}
         />
         <SankeyLabels nodes={nodes} width={width} />
       </svg>

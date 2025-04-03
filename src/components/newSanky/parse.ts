@@ -70,7 +70,7 @@ export const makeSankeyFunc = ({
   const sankeyGen = sankey<SankeyDataNode, SankeyDataLink>()
     .nodeId((d) => d.name)
     .nodeWidth(15)
-    .nodePadding(10)
+    .nodePadding(15)
     .nodeAlign(sankeyCenter)
     .extent([
       [1, 5],

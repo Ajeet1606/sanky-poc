@@ -24,6 +24,7 @@ interface SankeyRectProps {
   links: PathLink[];
   visibleData: SankeyData;
   setVisibleData: React.Dispatch<React.SetStateAction<SankeyData | undefined>>;
+  setRenderedLinksCache: React.Dispatch<React.SetStateAction<Set<string>>>;
 }
 
 const getCoordinates = (node: RectNode) => {
@@ -86,6 +87,7 @@ export const SankeyRect = ({
   links,
   visibleData,
   setVisibleData,
+  setRenderedLinksCache,
   ...rectProps
 }: SankeyRectProps): JSX.Element => {
   return (
@@ -101,7 +103,7 @@ export const SankeyRect = ({
         );
 
         const updatedVisibleData = isNotALeafNode
-          ? collapseNode(node.name)
+          ? collapseNode(node.name, setRenderedLinksCache)
           : markVisibleNodesAndLinks(node.name);
         setVisibleData(updatedVisibleData);
       }}
@@ -130,6 +132,7 @@ interface SankeyRectsProps {
   colorFunc?(node: RectNode): string;
   visibleData: SankeyData;
   setVisibleData: React.Dispatch<React.SetStateAction<SankeyData | undefined>>;
+  setRenderedLinksCache: React.Dispatch<React.SetStateAction<Set<string>>>;
 }
 
 export const SankeyRects = ({
@@ -139,6 +142,7 @@ export const SankeyRects = ({
   colorFunc,
   visibleData,
   setVisibleData,
+  setRenderedLinksCache,
 }: SankeyRectsProps): JSX.Element => {
   return (
     <g stroke="#000">
@@ -154,6 +158,7 @@ export const SankeyRects = ({
             links={links}
             visibleData={visibleData}
             setVisibleData={setVisibleData}
+            setRenderedLinksCache={setRenderedLinksCache}
           />
         );
       })}
