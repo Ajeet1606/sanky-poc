@@ -59,14 +59,17 @@ const isFullRectNode = (node: RectNode): node is Required<RectNode> => {
   );
 };
 
-const getTextProps = (
-  { x0, x1, y0, y1 }: Required<RectNode>,
-  width: number
-) => {
-  const x = x0 < width / 2 ? x1 + 6 : x0 - 6;
-  const y = (y1 + y0) / 2;
+const getTextProps = (node: Required<RectNode>, width: number) => {
+  // Determine if this is a root/source node (has no incoming links)
+  const isRootNode = node.targetLinks.length === 0;
 
-  const textAnchor = x0 < width / 2 ? 'start' : 'end';
+  // Position root nodes' labels on the left, all others on the right
+  const position: 'left' | 'right' = isRootNode ? 'left' : 'right';
+
+  // Calculate position based on the determined side
+  const x = position === 'right' ? node.x1 + 6 : node.x0 - 6;
+  const textAnchor = position === 'right' ? 'start' : 'end';
+  const y = (node.y1 + node.y0) / 2;
 
   return {
     x,

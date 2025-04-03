@@ -23,8 +23,8 @@ interface SankeyChartProps {
 }
 
 export const SankeyChart = ({
-  width,
-  height,
+  width: containerWidth,
+  height: containerHeight,
 }: SankeyChartProps): JSX.Element | null => {
   const [data, setData] = useState<SankeyData | null>(sankeyData);
   const [visibleData, setVisibleData] = useState<SankeyData>();
@@ -32,6 +32,11 @@ export const SankeyChart = ({
   const [renderedLinksCache, setRenderedLinksCache] = useState(
     new Set<string>()
   );
+
+  const padding = { left: 100, right: 100, top: 20, bottom: 20 };
+  // Calculate the actual chart dimensions (subtracting padding)
+  const width = containerWidth - padding.left - padding.right;
+  const height = containerHeight - padding.top - padding.bottom;
 
   useEffect(() => {
     if (!data) return;
@@ -45,7 +50,7 @@ export const SankeyChart = ({
         width,
         height,
       }),
-    [width, height]
+    [containerWidth, containerHeight]
   );
 
   const sankeyResult = useMemo(() => {
@@ -57,26 +62,29 @@ export const SankeyChart = ({
   if (!visibleData || !sankeyResult) return null;
 
   const { nodes, links } = sankeyResult;
+
   return (
     <>
-      <svg width={width} height={height} style={{ margin: '0 20' }}>
-        <SankeyRects
-          nodes={nodes}
-          colorFunc={colorRectFunc}
-          titleFunc={formatRectTitleFunc}
-          links={links}
-          visibleData={visibleData}
-          setVisibleData={setVisibleData}
-          setRenderedLinksCache={setRenderedLinksCache}
-        />
-        <SankeyLinks
-          links={links}
-          colorFunc={colorLinkFunc}
-          titleFunc={formatLinkTitleFunc}
-          renderedLinksCache={renderedLinksCache}
-          setRenderedLinksCache={setRenderedLinksCache}
-        />
-        <SankeyLabels nodes={nodes} width={width} />
+      <svg width={containerWidth} height={containerHeight}>
+        <g transform={`translate(${padding.left}, ${padding.top})`}>
+          <SankeyRects
+            nodes={nodes}
+            colorFunc={colorRectFunc}
+            titleFunc={formatRectTitleFunc}
+            links={links}
+            visibleData={visibleData}
+            setVisibleData={setVisibleData}
+            setRenderedLinksCache={setRenderedLinksCache}
+          />
+          <SankeyLinks
+            links={links}
+            colorFunc={colorLinkFunc}
+            titleFunc={formatLinkTitleFunc}
+            renderedLinksCache={renderedLinksCache}
+            setRenderedLinksCache={setRenderedLinksCache}
+          />
+          <SankeyLabels nodes={nodes} width={width} />
+        </g>
       </svg>
       <div
         id="tooltip"
