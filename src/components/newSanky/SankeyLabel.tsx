@@ -70,7 +70,6 @@ const getTextProps = (node: Required<RectNode>, width: number) => {
   const x = position === 'right' ? node.x1 + 6 : node.x0 - 6;
   const textAnchor = position === 'right' ? 'start' : 'end';
   const y = (node.y1 + node.y0) / 2;
-
   return {
     x,
     y,

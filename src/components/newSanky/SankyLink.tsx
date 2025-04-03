@@ -12,11 +12,60 @@ import { RectNode } from './SankyRect';
 
 export type PathLink = SankeyLinkType<SankeyDataNode, SankeyDataLink>;
 
-const makeDPath = sankeyLinkHorizontal<SankeyDataNode, SankeyDataLink>();
+// const makeDPath = sankeyLinkHorizontal<SankeyDataNode, SankeyDataLink>();
 
-const renderedLinksCache = new Set<string>();
+// Custom path generator that creates S-curve/funnel shaped links
+const makeCustomDPath = (
+  link: PathLink,
+  sourceIndex: number,
+  numLinks: number
+): string => {
+  const source = link.source as SankeyNodeMinimal<
+    SankeyDataNode,
+    SankeyDataLink
+  >;
+  const target = link.target as SankeyNodeMinimal<
+    SankeyDataNode,
+    SankeyDataLink
+  >;
+
+  // Source coordinates
+  const sourceX = source.x1!;
+  const sourceY0 = source.y0!;
+  const sourceY1 = source.y1!;
+  const sourceHeight = sourceY1 - sourceY0;
+
+  // Calculate the link height, assuming equal area for each link
+  const linkHeight = sourceHeight / source.sourceLinks?.length!;
+
+  // Calculate the y-coordinate for this link
+  const linkY0 = sourceY0 + sourceIndex * linkHeight;
+  const linkY1 = linkY0 + linkHeight;
+
+  // Target coordinates
+  const targetX = target.x0!;
+  const targetY0 = target.y0!;
+  const targetY1 = target.y1!;
+  const targetHeight = targetY1 - targetY0;
+
+  // Calculate control points for the S-curve
+  const xDistance = targetX - sourceX;
+  const control1X = sourceX + xDistance * 0.4; // First control point 40% along the way
+  const control2X = sourceX + xDistance * 0.6; // Second control point 60% along the way
+
+  // Create the S-curve bezier path
+  const path = `M ${sourceX} ${linkY0}
+    C ${control1X} ${linkY0}, ${control2X} ${targetY0}, ${targetX} ${targetY0}
+    L ${targetX} ${targetY1}
+    C ${control2X} ${targetY1}, ${control1X} ${linkY1}, ${sourceX} ${linkY1}
+    Z`;
+
+  return path;
+};
+
 interface SankeyLinkProps {
-  d: string;
+  // d: string;
+  path: string;
   strokeWidth?: number;
   color?: string;
   title?: string;
@@ -28,7 +77,8 @@ interface SankeyLinkProps {
 }
 
 export const SankeyLink = ({
-  d,
+  // d,
+  path,
   color,
   strokeWidth,
   title,
@@ -74,7 +124,7 @@ export const SankeyLink = ({
         }, 50);
       }
     }
-  }, [d, linkKey]);
+  }, [linkKey]);
 
   return (
     <g style={{ mixBlendMode: 'multiply' }}>
@@ -116,10 +166,10 @@ export const SankeyLink = ({
       </defs>
       <path
         ref={pathRef}
-        d={d}
-        stroke={`url(#linkGradient-${uuid})`}
-        // stroke={color}
-        strokeWidth={strokeWidth}
+        d={path}
+        // stroke={`url(#linkGradient-${uuid})`}
+        // strokeWidth={strokeWidth}
+        fill={`url(#linkGradient-${uuid})`}
         id={`path-link-${uuid}`}
         onClick={(e) => {
           e.stopPropagation();
@@ -165,11 +215,12 @@ export const SankeyLinks = ({
   setRenderedLinksCache,
 }: SankeyLinksProps): JSX.Element => {
   return (
-    <g fill="none" strokeOpacity={0.5}>
-      {links.map((link) => {
-        const d = makeDPath(link);
+    <g fillOpacity={0.5}>
+      {links.map((link, index) => {
+        const customPath = makeCustomDPath(link, index, links.length);
+        // const d = makeDPath(link)
 
-        if (!d) return null;
+        if (!customPath) return null;
 
         const strokeWidth = Math.max(1, link.width || 0);
         const { source, target } = link;
@@ -186,7 +237,8 @@ export const SankeyLinks = ({
         return (
           <SankeyLink
             key={key}
-            d={d}
+            // d={d}
+            path={customPath}
             color={colorFunc?.(link)}
             title={titleFunc?.(link)}
             strokeWidth={strokeWidth}

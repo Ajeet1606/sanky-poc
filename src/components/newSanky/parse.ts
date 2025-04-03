@@ -2,12 +2,12 @@ import { SankeyData, SankeyDataLink, SankeyDataNode } from '@/constants/data';
 import { format } from 'd3-format';
 import { sankey, sankeyCenter, SankeyLayout } from 'd3-sankey';
 import { scaleOrdinal } from 'd3-scale';
-import { schemeCategory10 } from 'd3-scale-chromatic';
 
 import { PathLink } from './SankyLink';
 import { RectNode } from './SankyRect';
 
-const d3Color = scaleOrdinal(schemeCategory10);
+const colors = ['#257C9D', '#F26C74', '#34BCAF', '#FFCB78', '#6CF2A2'];
+const d3Color = scaleOrdinal(colors);
 
 export const colorRectFunc = (dataPoint: RectNode) => d3Color(dataPoint.name);
 
@@ -46,18 +46,18 @@ interface MakeSankeyInput {
   height: number;
 }
 
-const linkComparator = (a: SankeyDataLink, b: SankeyDataLink) => {
-  // Sort smaller values to the extremes (sides) and larger values to the middle
-  const midValue = 5000; // Adjust this threshold as needed based on your data
+// const linkComparator = (a: SankeyDataLink, b: SankeyDataLink) => {
+//   // Sort smaller values to the extremes (sides) and larger values to the middle
+//   const midValue = 5000; // Adjust this threshold as needed based on your data
 
-  const diffA = Math.abs(a.value - midValue);
-  const diffB = Math.abs(b.value - midValue);
+//   const diffA = Math.abs(a.value - midValue);
+//   const diffB = Math.abs(b.value - midValue);
 
-  // Place links with values closer to the middle threshold at the center
-  if (diffA < diffB) return 1; // Move larger values to the middle
-  if (diffA > diffB) return -1; // Move smaller values to the sides
-  return 0;
-};
+//   // Place links with values closer to the middle threshold at the center
+//   if (diffA < diffB) return 1; // Move larger values to the middle
+//   if (diffA > diffB) return -1; // Move smaller values to the sides
+//   return 0;
+// };
 
 export const makeSankeyFunc = ({
   width,
@@ -75,8 +75,8 @@ export const makeSankeyFunc = ({
     .extent([
       [1, 5],
       [width - 1, height - 5],
-    ])
-    .linkSort(linkComparator);
+    ]);
+  // .linkSort(linkComparator);
 
   return sankeyGen;
 };
