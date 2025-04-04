@@ -35,12 +35,18 @@ export const SankeyLabel = ({
     <g>
       <text {...textProps} fontSize="12" fontWeight="600" fill="currentColor">
         {/* Node name on first line */}
-        <tspan x={textProps.x} dy="0" fontWeight="bold">
+        <tspan x={textProps.x} dy="0" fontWeight="bold" color="white">
           {text}
         </tspan>
 
         {/* Value on second line */}
-        <tspan x={textProps.x} dy="1.2em" fontSize="10" opacity="0.7">
+        <tspan
+          x={textProps.x}
+          dy="1.2em"
+          fontSize="10"
+          opacity="0.7"
+          color="white"
+        >
           {isNaN(+percentageValue) || percentageValue === 'Infinity'
             ? `${node.value?.toLocaleString()}`
             : `${percentageValue}% (${node.value?.toLocaleString()})`}

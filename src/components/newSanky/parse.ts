@@ -2,13 +2,24 @@ import { SankeyData, SankeyDataLink, SankeyDataNode } from '@/constants/data';
 import { format } from 'd3-format';
 import { sankey, sankeyCenter, SankeyLayout } from 'd3-sankey';
 import { scaleOrdinal } from 'd3-scale';
-import { schemeCategory10 } from 'd3-scale-chromatic';
 
 import { PathLink } from './SankyLink';
 import { RectNode } from './SankyRect';
 
-const d3Color = scaleOrdinal(schemeCategory10);
+// Your custom color palette
+const colors = ['#257C9D', '#F26C74', '#34BCAF', '#FFCB78', '#6CF2A2'];
 
+// Create a color scale with your custom colors
+const d3Color = scaleOrdinal<string>().range(colors);
+
+// Before using the color functions, set the domain based on your data
+export const initializeColorScale = (data: SankeyData) => {
+  // Extract all unique node names to use as domain
+  const nodeNames = Array.from(new Set(data.nodes.map((node) => node.name)));
+
+  // Set the domain for the color scale
+  d3Color.domain(nodeNames);
+};
 export const colorRectFunc = (dataPoint: RectNode) => d3Color(dataPoint.name);
 
 export const colorLinkFunc = (dataPoint: PathLink) => {
@@ -70,7 +81,7 @@ export const makeSankeyFunc = ({
   const sankeyGen = sankey<SankeyDataNode, SankeyDataLink>()
     .nodeId((d) => d.name)
     .nodeWidth(15)
-    .nodePadding(15)
+    .nodePadding(55)
     .nodeAlign(sankeyCenter)
     .extent([
       [1, 5],

@@ -39,15 +39,13 @@ export const SankeyLink = ({
   setRenderedLinksCache,
 }: SankeyLinkProps): JSX.Element => {
   const pathRef = useRef<SVGPathElement>(null);
-  // const [pathLength, setPathLength] = useState(0);
-  const [animationActive, setAnimationActive] = useState(true);
 
   const linkKey = `${source}--${target}`;
 
   const uuid = `${(link.source as SankeyDataNode & SankeyNodeMinimal<SankeyDataNode, SankeyDataLink>).index}-${(link.target as SankeyDataNode & SankeyNodeMinimal<SankeyDataNode, SankeyDataLink>).index}`;
 
-  const sourceNodeColor = colorRectFunc(link.source);
-  const targetNodeColor = colorRectFunc(link.target);
+  const sourceNodeColor = colorRectFunc(link.source) as string;
+  const targetNodeColor = colorRectFunc(link.target) as string;
 
   useEffect(() => {
     if (pathRef.current && !renderedLinksCache.has(linkKey)) {
@@ -68,7 +66,7 @@ export const SankeyLink = ({
         setTimeout(() => {
           if (pathRef.current) {
             pathRef.current.style.transition =
-              'stroke-dashoffset 0.5s ease-in-out';
+              'stroke-dashoffset 0.2s ease-in-out';
             pathRef.current.style.strokeDashoffset = '0';
           }
         }, 50);
@@ -77,7 +75,7 @@ export const SankeyLink = ({
   }, [d, linkKey]);
 
   return (
-    <g style={{ mixBlendMode: 'multiply' }}>
+    <g style={{ mixBlendMode: 'screen' }}>
       {/* Define linear gradient inside <defs> */}
       <defs>
         <linearGradient

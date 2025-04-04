@@ -1,4 +1,4 @@
-import React, { JSX, useEffect, useMemo, useState } from 'react';
+import React, { JSX, useEffect, useMemo, useRef, useState } from 'react';
 import {
   markVisibleNodesAndLinks,
   SankeyData,
@@ -11,6 +11,7 @@ import {
   colorRectFunc,
   formatLinkTitleFunc,
   formatRectTitleFunc,
+  initializeColorScale,
   makeSankeyFunc,
 } from './parse';
 import { SankeyLabels } from './SankeyLabel';
@@ -20,18 +21,18 @@ import { SankeyRects } from './SankyRect';
 interface SankeyChartProps {
   width: number;
   height: number;
+  renderedLinksCache: Set<string>;
+  setRenderedLinksCache: React.Dispatch<React.SetStateAction<Set<string>>>;
 }
 
 export const SankeyChart = ({
   width: containerWidth,
   height: containerHeight,
+  renderedLinksCache,
+  setRenderedLinksCache,
 }: SankeyChartProps): JSX.Element | null => {
   const [data, setData] = useState<SankeyData | null>(sankeyData);
   const [visibleData, setVisibleData] = useState<SankeyData>();
-  // Keep track of links that have already been rendered
-  const [renderedLinksCache, setRenderedLinksCache] = useState(
-    new Set<string>()
-  );
 
   const padding = { left: 100, right: 100, top: 20, bottom: 20 };
   // Calculate the actual chart dimensions (subtracting padding)
@@ -42,6 +43,7 @@ export const SankeyChart = ({
     if (!data) return;
     const visibleData = markVisibleNodesAndLinks('traces');
     setVisibleData(visibleData);
+    initializeColorScale(data);
   }, [data]);
 
   const sankeyGen = useMemo(
@@ -102,14 +104,31 @@ export const SankeyChart = ({
 
 export const Sankey = (): JSX.Element => {
   const [ref, measurements] = useMeasure<HTMLDivElement>();
+  // Keep track of links that have already been rendered
+  const [renderedLinksCache, setRenderedLinksCache] = useState(
+    new Set<string>()
+  );
+  console.log('renderedLinksCache', renderedLinksCache);
+
   const { width } = measurements;
   // Set default height to 300px if width is not available
   const height = width > 0 ? width * 0.6 : 300; // Maintain aspect ratio
 
+  // useEffect(() => {
+  //   setRenderedLinksCache(new Set<string>());
+  // }, [width]);
+
   return (
     // ResizeObserver doesn't work directly on <svg/>
     <div ref={ref}>
-      {width > 0 && <SankeyChart width={width} height={height} />}
+      {width > 0 && (
+        <SankeyChart
+          width={width}
+          height={height}
+          renderedLinksCache={renderedLinksCache}
+          setRenderedLinksCache={setRenderedLinksCache}
+        />
+      )}
     </div>
   );
 };

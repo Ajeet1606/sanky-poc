@@ -1,4 +1,4 @@
-import React, { JSX } from 'react';
+import React, { JSX, useEffect, useState } from 'react';
 import {
   collapseNode,
   markVisibleNodesAndLinks,
@@ -90,9 +90,15 @@ export const SankeyRect = ({
   setRenderedLinksCache,
   ...rectProps
 }: SankeyRectProps): JSX.Element => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setIsVisible(true);
+    }, 50); // Small delay to trigger animation
+  }, []);
   return (
     <rect
-      rx="4"
       {...rectProps}
       fill={color}
       onClick={(e) => {
@@ -117,11 +123,11 @@ export const SankeyRect = ({
       }}
       style={{
         cursor: 'pointer',
-        opacity: 0.8,
+        opacity: isVisible ? 0.8 : 0, // Start invisible
+        transform: isVisible ? 'translateY(0px)' : 'translateY(20px)', // Start lower
+        transition: 'transform 0.2s ease-out, opacity 0.6s ease-out',
       }}
-    >
-      {title && <title>{title}</title>}
-    </rect>
+    ></rect>
   );
 };
 
