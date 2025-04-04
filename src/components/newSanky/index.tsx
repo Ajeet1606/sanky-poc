@@ -108,7 +108,6 @@ export const Sankey = (): JSX.Element => {
   const [renderedLinksCache, setRenderedLinksCache] = useState(
     new Set<string>()
   );
-  console.log('renderedLinksCache', renderedLinksCache);
 
   const { width } = measurements;
   // Set default height to 300px if width is not available

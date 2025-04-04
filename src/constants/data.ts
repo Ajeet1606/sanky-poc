@@ -18,6 +18,8 @@ export interface SankeyData {
   links: SankeyDataLink[];
 }
 
+const MAX_CHILD_ALLOWED = 3;
+
 // this function is called in two sceanrios:
 // - initial render: to mark first 2 levels as visible (root and its children): for expantion
 // - when a node is clicked.: to mark its children and links as visible: for expantion
@@ -30,30 +32,78 @@ export function markVisibleNodesAndLinks(rootName: string): SankeyData {
   const rootNode = nodes.find(
     (node) => node.name.toLowerCase() === rootName.toLowerCase()
   );
-  if (rootNode) {
-    rootNode.isVisible = true;
+  if (!rootNode) {
+    return sankeyData;
   }
+  rootNode.isVisible = true;
 
   // Mark children of root as visible
   const childNodes = nodes.filter(
     (node) => node.parent?.toLowerCase() === rootName.toLowerCase()
   );
-  childNodes.forEach((node) => {
-    node.isVisible = true;
-  });
 
-  // Mark links connecting visible nodes as visible
-  links.forEach((link) => {
-    const sourceNode = nodes.find((node) => node.name === link.source.name);
-    const targetNode = nodes.find((node) => node.name === link.target.name);
-    if (
-      sourceNode?.isVisible &&
-      targetNode?.isVisible &&
-      sourceNode.name.toLowerCase() === rootName.toLowerCase()
-    ) {
-      link.isVisible = true;
+  // combine children and links if there're more than MAX_CHILD_ALLOWED
+  if (childNodes.length > MAX_CHILD_ALLOWED) {
+    const firstChild = childNodes[0];
+    const restChildren = childNodes.slice(1);
+
+    const firstLink = links.find(
+      (link) =>
+        link.source.name.toLowerCase() === rootName.toLowerCase() &&
+        link.target.name.toLowerCase() === firstChild.name.toLowerCase()
+    );
+
+    const restLinks = links.filter(
+      (link) =>
+        link.source.name.toLowerCase() === rootName.toLowerCase() &&
+        restChildren.some(
+          (child) => child.name.toLowerCase() === link.target.name.toLowerCase()
+        )
+    );
+
+    if (firstChild && firstLink) {
+      firstChild.isVisible = true;
+      firstLink.isVisible = true;
+
+      const restLinkValue = restLinks.reduce(
+        (total, link) => total + link.value,
+        0
+      );
+
+      const otherNode = {
+        name: 'Other',
+        parent: rootName,
+        isVisible: true,
+      };
+
+      const otherLink = {
+        source: rootNode,
+        target: otherNode,
+        value: restLinkValue,
+        isVisible: true,
+      };
+
+      nodes.push(otherNode);
+      links.push(otherLink);
     }
-  });
+  } else {
+    childNodes.forEach((node) => {
+      node.isVisible = true;
+    });
+
+    // Mark links connecting visible nodes as visible
+    links.forEach((link) => {
+      const sourceNode = nodes.find((node) => node.name === link.source.name);
+      const targetNode = nodes.find((node) => node.name === link.target.name);
+      if (
+        sourceNode?.isVisible &&
+        targetNode?.isVisible &&
+        sourceNode.name.toLowerCase() === rootName.toLowerCase()
+      ) {
+        link.isVisible = true;
+      }
+    });
+  }
 
   // Filter and return only the visible nodes and links
   const visibleNodes = nodes.filter((node) => node.isVisible);
@@ -77,6 +127,19 @@ export function collapseNode(
   const childNodes = getAllChildNodesInHierarchy(nodeName, nodes);
 
   childNodes.forEach((node) => {
+    if (node.name === 'Other') {
+      // delete node and link
+      links.splice(
+        links.indexOf(
+          links.find(
+            (link) =>
+              link.target.name === node.name && link.source.name === nodeName
+          )!
+        ),
+        1
+      );
+      nodes.splice(nodes.indexOf(node), 1);
+    }
     node.isVisible = false;
   });
 
@@ -182,7 +245,10 @@ const data = {
     'Traces.Completed.Met SLA': 8000,
     'Traces.Completed.Not Met SLA': 500,
     'Traces.Error.Timeout': 530,
-    'Traces.Error.Internal Error': 500,
+    'Traces.Error.Internal Error': 200,
+    'Traces.Error.A': 100,
+    'Traces.Error.B': 100,
+    'Traces.Error.C': 100,
     'Traces.Abandoned.User Cancellation': 600,
     'Traces.Abandoned.Connection Lost': 404,
     'Traces.Completed.Met SLA.High Priority': 5000,
