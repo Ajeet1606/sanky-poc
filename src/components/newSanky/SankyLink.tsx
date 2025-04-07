@@ -46,9 +46,12 @@ export const SankeyLink = ({
 
   const sourceNodeColor = colorRectFunc(link.source) as string;
   const targetNodeColor = colorRectFunc(link.target) as string;
+  console.log('rendering link', linkKey);
 
   useEffect(() => {
     if (pathRef.current && !renderedLinksCache.has(linkKey)) {
+      console.log('inside if');
+
       setRenderedLinksCache((prevSet) => {
         const newSet = new Set(prevSet);
         newSet.add(linkKey);
@@ -70,6 +73,13 @@ export const SankeyLink = ({
             pathRef.current.style.strokeDashoffset = '0';
           }
         }, 50);
+      }
+    } else {
+      if (pathRef && pathRef.current) {
+        // Already cached: Don't animate, just make sure path updates properly
+        pathRef.current.style.transition = 'none';
+        pathRef.current.style.strokeDasharray = 'none';
+        pathRef.current.style.strokeDashoffset = '0';
       }
     }
   }, [d, linkKey]);
